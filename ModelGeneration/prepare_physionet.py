@@ -135,35 +135,35 @@ def main():
                 idx = int(onset_sec * sampling_rate) + np.arange(duration_sec * sampling_rate, dtype=np.int)
                 label_idx.append(idx)
 
-                print "Include onset:{}, duration:{}, label:{} ({})".format(
+                print("Include onset:{}, duration:{}, label:{} ({})".format(
                     onset_sec, duration_sec, label, ann_str
-                )
+                ))
             else:
                 idx = int(onset_sec * sampling_rate) + np.arange(duration_sec * sampling_rate, dtype=np.int)
                 remove_idx.append(idx)
 
-                print "Remove onset:{}, duration:{}, label:{} ({})".format(
+                print("Remove onset:{}, duration:{}, label:{} ({})".format(
                     onset_sec, duration_sec, label, ann_str
-                )
+                ))
         labels = np.hstack(labels)
         
-        print "before remove unwanted: {}".format(np.arange(len(raw_ch_df)).shape)
+        print("before remove unwanted: {}".format(np.arange(len(raw_ch_df)).shape))
         if len(remove_idx) > 0:
             remove_idx = np.hstack(remove_idx)
             select_idx = np.setdiff1d(np.arange(len(raw_ch_df)), remove_idx)
         else:
             select_idx = np.arange(len(raw_ch_df))
-        print "after remove unwanted: {}".format(select_idx.shape)
+        print("after remove unwanted: {}".format(select_idx.shape))
 
         # Select only the data with labels
-        print "before intersect label: {}".format(select_idx.shape)
+        print("before intersect label: {}".format(select_idx.shape))
         label_idx = np.hstack(label_idx)
         select_idx = np.intersect1d(select_idx, label_idx)
-        print "after intersect label: {}".format(select_idx.shape)
+        print("after intersect label: {}".format(select_idx.shape))
 
         # Remove extra index
         if len(label_idx) > len(select_idx):
-            print "before remove extra labels: {}, {}".format(select_idx.shape, labels.shape)
+            print("before remove extra labels: {}, {}".format(select_idx.shape, labels.shape))
             extra_idx = np.setdiff1d(label_idx, select_idx)
             # Trim the tail
             if np.all(extra_idx > select_idx[-1]):
@@ -171,7 +171,7 @@ def main():
                 n_label_trims = int(math.ceil(n_trims / (EPOCH_SEC_SIZE * sampling_rate)))
                 select_idx = select_idx[:-n_trims]
                 labels = labels[:-n_label_trims]
-            print "after remove extra labels: {}, {}".format(select_idx.shape, labels.shape)
+            print("after remove extra labels: {}, {}".format(select_idx.shape, labels.shape))
 
         # Remove movement and unknown stages if any
         raw_ch = raw_ch_df.values[select_idx]
@@ -212,8 +212,9 @@ def main():
         }
         np.savez(os.path.join(args.output_dir, filename), **save_dict)
 
-        print "\n=======================================\n"
+        print("\n=======================================\n")
 
 
 if __name__ == "__main__":
     main()
+
