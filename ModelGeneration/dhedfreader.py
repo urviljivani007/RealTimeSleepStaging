@@ -14,11 +14,12 @@ Copyright (c) 2012 Boris Reuderink.
 import re, datetime, operator, logging
 import numpy as np
 from collections import namedtuple
+from functools import reduce
 
 EVENT_CHANNEL = 'EDF Annotations'
 log = logging.getLogger(__name__)
 
-class EDFEndOfData: pass
+class EDFEndOfData(BaseException): pass
 
 
 def tal(tal_str):
@@ -31,7 +32,8 @@ def tal(tal_str):
     '(?:\x14\x00)'
 
   def annotation_to_list(annotation):
-    return unicode(annotation, 'utf-8').split('\x14') if annotation else []
+    #return str(annotation, 'utf-8').split('\x14') if annotation else []
+    return annotation.split('\x14') if annotation else []
 
   def parse(dic):
     return (
@@ -67,7 +69,7 @@ def edf_header(f):
   nchannels = h['n_channels'] = int(f.read(4))
 
   # read channel info
-  channels = range(h['n_channels'])
+  channels = list(range(h['n_channels']))
   h['label'] = [f.read(16).strip() for n in channels]
   h['transducer_type'] = [f.read(80).strip() for n in channels]
   h['units'] = [f.read(8).strip() for n in channels]
@@ -79,7 +81,7 @@ def edf_header(f):
   h['n_samples_per_record'] = [int(f.read(8)) for n in channels]
   f.read(32 * nchannels)  # reserved
 
-  # assert f.tell() == header_nbytes
+  assert f.tell() == header_nbytes
   return h
 
 
@@ -184,7 +186,7 @@ def load_edf(edffile):
       description : list with strings
         Contains (multiple?) descriptions of the annotation event.
   '''
-  if isinstance(edffile, basestring):
+  if isinstance(edffile, str):
     with open(edffile, 'rb') as f:
       return load_edf(f)  # convert filename to file
 
@@ -201,7 +203,7 @@ def load_edf(edffile):
   assert nsamp.size == 1, 'Multiple sample rates not supported!'
   sample_rate = float(nsamp[0]) / h['record_length']
 
-  rectime, X, annotations = zip(*reader.records())
+  rectime, X, annotations = list(zip(*reader.records()))
   X = np.hstack(X)
   annotations = reduce(operator.add, annotations)
   chan_lab = [lab for lab in reader.header['label'] if lab != EVENT_CHANNEL]

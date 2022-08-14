@@ -6,13 +6,12 @@ import math
 import ntpath
 import os
 import shutil
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 
 from datetime import datetime
 
 import numpy as np
-import pandas as pd
 
 from mne import Epochs, pick_types, find_events
 from mne.io import concatenate_raws, read_raw_edf
@@ -99,7 +98,7 @@ def main():
         raw_ch_df.set_index(np.arange(len(raw_ch_df)))
 
         # Get raw header
-        f = open(psg_fnames[i], 'r')
+        f = open(psg_fnames[i], 'r', encoding='iso-8859-1')
         reader_raw = dhedfreader.BaseEDFReader(f)
         reader_raw.read_header()
         h_raw = reader_raw.header
@@ -107,11 +106,11 @@ def main():
         raw_start_dt = datetime.strptime(h_raw['date_time'], "%Y-%m-%d %H:%M:%S")
 
         # Read annotation and its header
-        f = open(ann_fnames[i], 'r')
+        f = open(ann_fnames[i], 'r', encoding='iso-8859-1')
         reader_ann = dhedfreader.BaseEDFReader(f)
         reader_ann.read_header()
         h_ann = reader_ann.header
-        _, _, ann = zip(*reader_ann.records())
+        _, _, ann = list(zip(*reader_ann.records()))
         f.close()
         ann_start_dt = datetime.strptime(h_ann['date_time'], "%Y-%m-%d %H:%M:%S")
 
@@ -195,10 +194,10 @@ def main():
         if start_idx < 0: start_idx = 0
         if end_idx >= len(y): end_idx = len(y) - 1
         select_idx = np.arange(start_idx, end_idx+1)
-        print("Data before selection: {}, {}".format(x.shape, y.shape))
+        print(("Data before selection: {}, {}".format(x.shape, y.shape)))
         x = x[select_idx]
         y = y[select_idx]
-        print("Data after selection: {}, {}".format(x.shape, y.shape))
+        print(("Data after selection: {}, {}".format(x.shape, y.shape)))
 
         # Save
         filename = ntpath.basename(psg_fnames[i]).replace("-PSG.edf", ".npz")
@@ -217,4 +216,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
